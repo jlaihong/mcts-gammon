@@ -1,4 +1,4 @@
-import org.mctsgammon.Games;
+package org.mctsgammon;
 /**
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,11 +14,6 @@ import org.mctsgammon.Games;
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-import org.mctsgammon.MoveState;
-import org.mctsgammon.Player;
-import org.mctsgammon.StateListener;
-import org.mctsgammon.ThrowState;
-import org.mctsgammon.WinnerListener;
 import org.mctsgammon.players.RolloutPlayer;
 import org.mctsgammon.players.UCTPlayer;
 
