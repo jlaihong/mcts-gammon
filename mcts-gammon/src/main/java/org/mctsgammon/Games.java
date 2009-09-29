@@ -85,8 +85,8 @@ public class Games implements WinnerListener {
 	
 	
 	public static void main(String[] args) throws InterruptedException {
-		final int time = 10000;
-		final Player black = new UCTPlayer(time, 2);
+		final int time = Integer.parseInt(args[0]);
+		final Player black = new UCTPlayer(time, 3);
 		final Player red = new RolloutPlayer(time);
 		final Games games = new Games(1000, black, red);
 		games.addStateListener(new StateListener() {
