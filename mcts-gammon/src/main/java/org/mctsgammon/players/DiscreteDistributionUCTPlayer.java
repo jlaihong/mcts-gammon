@@ -24,7 +24,7 @@ import org.mctsgammon.MoveState;
 import org.mctsgammon.Player;
 import org.mctsgammon.ThrowState;
 
-public class MaxUCTPlayer implements Player {
+public class DiscreteDistributionUCTPlayer implements Player {
 
 	private final static Random r = new Random();
 
@@ -33,7 +33,7 @@ public class MaxUCTPlayer implements Player {
 
 	private boolean isBlack;
 
-	public MaxUCTPlayer(int time, double C) {
+	public DiscreteDistributionUCTPlayer(int time, double C) {
 		this.time = time;
 		this.C = C;
 	}
@@ -124,7 +124,7 @@ public class MaxUCTPlayer implements Player {
 
 		public UCTLeafState(Board board, boolean isBlackTurn) {
 			super(board, isBlackTurn);
-			boolean botWins = MaxUCTPlayer.this.isBlack? board.blackWins():board.redWins();
+			boolean botWins = DiscreteDistributionUCTPlayer.this.isBlack? board.blackWins():board.redWins();
 			fixedReward = botWins? board.getProfit():-board.getProfit();
 		}
 
@@ -168,7 +168,7 @@ public class MaxUCTPlayer implements Player {
 					}
 					return unsampledChildren.get(r.nextInt(unsampledChildren.size()));
 				}
-				int sign = (isBlackTurn==MaxUCTPlayer.this.isBlack)? 1:-1;
+				int sign = (isBlackTurn==DiscreteDistributionUCTPlayer.this.isBlack)? 1:-1;
 				double uct = sign*child.getEV() + C*Math.sqrt(Math.log(Math.max(nbSamples,child.nbSamples))/child.nbSamples);
 				if(uct> max){
 					max = uct;
