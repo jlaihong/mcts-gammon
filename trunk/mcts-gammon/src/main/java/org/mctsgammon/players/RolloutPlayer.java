@@ -47,7 +47,7 @@ public class RolloutPlayer implements Player {
 
 		System.out.println(this+" performed "+nbIterations+" iterations.");
 		
-		double maxEv = -1;
+		double maxEv = Double.NEGATIVE_INFINITY;
 		int maxEvI = 0;
 		for(int i=0;i<states.length;i++){
 			if(ev[i]/nb[i]>maxEv){
