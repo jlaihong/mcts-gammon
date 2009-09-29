@@ -13,6 +13,21 @@
 						<target>1.6</target>
 					</configuration>
 				</plugin>
+				<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>org.cspoker.ai.bots.RunHumanVsBot</mainClass>
+						</manifest>
+					</archive>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
