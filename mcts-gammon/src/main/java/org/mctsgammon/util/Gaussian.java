@@ -94,12 +94,16 @@ public class Gaussian {
 	
 	@Override
 	public String toString() {
-		return "N("+mean+","+getStdDev()+")";
+		return "N("+(float)mean+","+(float)getStdDev()+")";
 	}
 
 
 	public double getStdDev() {
 		return Math.sqrt(variance);
+	}
+
+	public Gaussian min() {
+		return new Gaussian(-mean, variance);
 	}
 	
 }

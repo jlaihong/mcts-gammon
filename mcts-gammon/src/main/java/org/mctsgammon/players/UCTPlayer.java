@@ -71,12 +71,10 @@ public class UCTPlayer implements Player {
 
 		if(states.length==1) return states[0];
 
-		int nbIterations = 0;
 		do{
-			root.mcts();
-			++nbIterations;
+			root.rootMcts();
 		}while(System.currentTimeMillis()<endTime);
-		System.out.println(this+" performed "+nbIterations+" iterations.");
+		System.out.println(this+" performed "+root.nbSamples+" iterations.");
 
 
 
@@ -151,6 +149,12 @@ public class UCTPlayer implements Player {
 
 		public UCTMoveState(Board board, DiceThrow diceThrow, boolean isBlackTurn) {
 			super(board, diceThrow, isBlackTurn);
+		}	
+
+		void rootMcts() {
+			UCTThrowState child  = select();
+			child.mcts();
+			++nbSamples;
 		}
 
 		public double mcts() {
@@ -189,18 +193,6 @@ public class UCTPlayer implements Player {
 		@Override
 		protected UCTThrowState createThrowState(Board board, boolean isBlackTurn) {
 			return createNewThrowState(board, isBlackTurn);
-			//			Q q = new Q(board,isBlackTurn);
-			//			UCTThrowState cached = cache.get(q);
-			//			if(cached==null){
-			//				++miss;
-			//				cached = createNewThrowState(board, isBlackTurn);
-			//				cache.put(q, cached);
-			//			}else{
-			//				++hit;
-			//				System.out.println("Reusing "+cached.nbSamples+" samples");
-			//				
-			//			}
-			//			return cached;
 		}
 
 		private UCTThrowState createNewThrowState(Board board,
@@ -215,52 +207,5 @@ public class UCTPlayer implements Player {
 		}
 
 	}
-
-
-	//	private static class Q {
-	//		
-	//		private final Board b;
-	//		private final boolean t;
-	//
-	//		public Q(Board b, boolean t) {
-	//			this.b = b;
-	//			this.t = t;
-	//		}
-	//
-	//		@Override
-	//		public int hashCode() {
-	//			final int prime = 31;
-	//			int result = 1;
-	//			result = prime * result + ((b == null) ? 0 : b.hashCode());
-	//			result = prime * result + (t ? 1231 : 1237);
-	//			return result;
-	//		}
-	//
-	//		@Override
-	//		public boolean equals(Object obj) {
-	//			if (this == obj)
-	//				return true;
-	//			if (obj == null)
-	//				return false;
-	//			if (!(obj instanceof Q))
-	//				return false;
-	//			Q other = (Q) obj;
-	//			if (b == null) {
-	//				if (other.b != null)
-	//					return false;
-	//			} else if (!b.equals(other.b))
-	//				return false;
-	//			if (t != other.t)
-	//				return false;
-	//			return true;
-	//		}
-	//		
-	//	}
-	//
-	//	public final Map<Q, UCTThrowState> cache = new MapMaker()
-	//		.concurrencyLevel(1)
-	//	    .softValues()
-	//	    .makeMap();
-	//	public int hit, miss;
 
 }
