@@ -25,7 +25,7 @@ import org.mctsgammon.Player;
 import org.mctsgammon.ThrowState;
 import org.mctsgammon.util.Gaussian;
 
-public class MaxGaussianUCTPlayer implements Player {
+public class CopyOfMaxGaussianUCT2Player implements Player {
 
 	private final static Random r = new Random();
 
@@ -36,7 +36,7 @@ public class MaxGaussianUCTPlayer implements Player {
 
 	private final double avgNbSamplesBeforeMax;
 
-	public MaxGaussianUCTPlayer(int time, double C, double avgNbSamplesBeforeMax) {
+	public CopyOfMaxGaussianUCT2Player(int time, double C, double avgNbSamplesBeforeMax) {
 		this.time = time;
 		this.C = C;
 		this.avgNbSamplesBeforeMax = avgNbSamplesBeforeMax;
@@ -113,7 +113,7 @@ public class MaxGaussianUCTPlayer implements Player {
 				}
 			}
 			double mean = meanTot/nbSamples;
-			double var = Math.max(0, sigmaMuTot/nbSamples-mean*mean);
+			double var = sigmaMuTot/nbSamples-mean*mean;
 			ev = new Gaussian(mean, var/nbSamples);
 		}
 
@@ -125,7 +125,7 @@ public class MaxGaussianUCTPlayer implements Player {
 
 		public UCTLeafState(Board board, boolean isBlackTurn) {
 			super(board, isBlackTurn);
-			boolean botWins = MaxGaussianUCTPlayer.this.isBlack? board.blackWins():board.redWins();
+			boolean botWins = CopyOfMaxGaussianUCT2Player.this.isBlack? board.blackWins():board.redWins();
 			fixedReward = botWins? board.getProfit():-board.getProfit();
 			ev = new Gaussian(fixedReward,0);
 		}
@@ -178,7 +178,7 @@ public class MaxGaussianUCTPlayer implements Player {
 				double mean = meanTot/nbSamples;
 				double var = sigmaMuTot/nbSamples-mean*mean;
 				ev = new Gaussian(mean, var/nbSamples);
-			}else if(isBlackTurn==MaxGaussianUCTPlayer.this.isBlack){
+			}else if(isBlackTurn==CopyOfMaxGaussianUCT2Player.this.isBlack){
 				//take maximum distribution in program decision nodes!
 				nbMax++;
 				Gaussian[] gaussians = new Gaussian[children.length];
@@ -212,7 +212,7 @@ public class MaxGaussianUCTPlayer implements Player {
 					}
 					return unsampledChildren.get(r.nextInt(unsampledChildren.size()));
 				}
-				int sign = (isBlackTurn==MaxGaussianUCTPlayer.this.isBlack)? 1:-1;
+				int sign = (isBlackTurn==CopyOfMaxGaussianUCT2Player.this.isBlack)? 1:-1;
 				double uct = sign*child.ev.mean + C*Math.sqrt(Math.log(Math.max(nbSamples,child.nbSamples))/child.nbSamples);
 				if(uct> max){
 					max = uct;
