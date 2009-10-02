@@ -24,6 +24,7 @@ public class ThrowState extends GameState{
 	public final static DiceThrow[] diceThrows = DiceThrow.values();
 
 	private MoveState[] children = null;
+	private MoveState[] equiProbableChildren = null;
 
 	public ThrowState(Board board, boolean isBlackTurn) {
 		super(board, isBlackTurn);
@@ -31,9 +32,16 @@ public class ThrowState extends GameState{
 
 	public MoveState[] getChildren() {
 		if(children==null){
-			children = new MoveState[diceThrows.length]; 
+			int epi = 0;
+			children = new MoveState[diceThrows.length];
+			equiProbableChildren = new MoveState[36];
 			for(int i=0;i<diceThrows.length;i++){
 				children[i] = createMoveState(board, diceThrows[i], isBlackTurn);
+				equiProbableChildren[epi++] = children[i];
+				if(!diceThrows[i].isDouble){
+					// a non-double is twice as likely
+					equiProbableChildren[epi++] = children[i];
+				}
 			}
 		}
 		return children;
@@ -45,7 +53,7 @@ public class ThrowState extends GameState{
 
 	public MoveState getRandomChild(){
 		getChildren();
-		return children[r.nextInt(children.length)];
+		return equiProbableChildren[r.nextInt(equiProbableChildren.length)];
 	}
 
 }
