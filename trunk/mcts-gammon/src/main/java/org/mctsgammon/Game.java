@@ -46,6 +46,7 @@ public class Game {
 				// must make move
 			    Player p = moveState.isBlackTurn? black: red;
 			    throwState = p.chooseMove(moveState);
+			    throwState = new ThrowState(throwState.board, throwState.isBlackTurn);
 			    MoveState oldMoveState = moveState;
 			    moveState = null;
 			    for(StateListener listener: stateListeners){

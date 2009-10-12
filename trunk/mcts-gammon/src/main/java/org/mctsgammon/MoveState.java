@@ -87,6 +87,10 @@ public class MoveState extends GameState{
 		}
 		return children;
 	}
+	
+	public ThrowState[] getChildrenIfAny(){
+		return children;
+	}
 
 	private void saveChildren(Collection<Board> boards) {
 		if(boards.isEmpty()) {
