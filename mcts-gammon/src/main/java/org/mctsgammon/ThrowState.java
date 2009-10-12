@@ -47,6 +47,10 @@ public class ThrowState extends GameState{
 		return children;
 	}
 	
+	public MoveState[] getChildrenIfAny(){
+		return children;
+	}
+	
 	protected MoveState createMoveState(Board board, DiceThrow diceThrow, boolean isBlackTurn) {
 		return new MoveState(board, diceThrow, isBlackTurn);
 	}

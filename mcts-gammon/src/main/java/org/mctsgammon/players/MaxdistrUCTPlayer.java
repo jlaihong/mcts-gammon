@@ -20,12 +20,15 @@ import java.util.Random;
 
 import org.mctsgammon.Board;
 import org.mctsgammon.DiceThrow;
+import org.mctsgammon.MCTSMoveState;
+import org.mctsgammon.MCTSPlayer;
+import org.mctsgammon.MCTSThrowState;
 import org.mctsgammon.MoveState;
 import org.mctsgammon.Player;
 import org.mctsgammon.ThrowState;
 import org.mctsgammon.util.Gaussian;
 
-public class CopyOfMaxGaussianUCT2Player implements Player {
+public class MaxdistrUCTPlayer implements MCTSPlayer {
 
 	private final static Random r = new Random();
 
@@ -36,7 +39,7 @@ public class CopyOfMaxGaussianUCT2Player implements Player {
 
 	private final double avgNbSamplesBeforeMax;
 
-	public CopyOfMaxGaussianUCT2Player(int time, double C, double avgNbSamplesBeforeMax) {
+	public MaxdistrUCTPlayer(int time, double C, double avgNbSamplesBeforeMax) {
 		this.time = time;
 		this.C = C;
 		this.avgNbSamplesBeforeMax = avgNbSamplesBeforeMax;
@@ -44,16 +47,7 @@ public class CopyOfMaxGaussianUCT2Player implements Player {
 
 	@Override
 	public ThrowState chooseMove(MoveState state) {
-		this.isBlack = state.isBlackTurn;
-		long endTime = System.currentTimeMillis()+time;
-		UCTMoveState root = new UCTMoveState(state.board, state.diceThrow, state.isBlackTurn);
-		ThrowState[] states = root.getChildren();
-
-		if(states.length==1) return states[0];
-		do{
-			root.rootMcts();
-		}while(System.currentTimeMillis()<endTime);
-		System.out.println(this+" performed "+root.nbSamples+" iterations.");
+		ThrowState[] states = doMCTS(state);
 
 		double maxAppreciation = Double.NEGATIVE_INFINITY;
 		UCTThrowState best = null;
@@ -68,8 +62,23 @@ public class CopyOfMaxGaussianUCT2Player implements Player {
 		}
 		System.out.println(this+" predicts "+best.ev);
 		System.out.println("NbMix: "+nbMix+" NbMax: "+nbMax+" NbMin: "+nbMin);
-		ThrowState throwState = new ThrowState(best.board, best.isBlackTurn);
-		return throwState;
+		return best;
+	}
+
+	@Override
+	public ThrowState[] doMCTS(MoveState state) {
+		this.isBlack = state.isBlackTurn;
+		long endTime = System.currentTimeMillis()+time;
+		UCTMoveState root = new UCTMoveState(state.board, state.diceThrow, state.isBlackTurn);
+		ThrowState[] states = root.getChildren();
+
+		if(states.length>1){
+			do{
+				root.rootMcts();
+			}while(System.currentTimeMillis()<endTime);
+		}
+		System.out.println(this+" performed "+root.nbSamples+" iterations.");
+		return states;
 	}
 
 	@Override
@@ -77,7 +86,7 @@ public class CopyOfMaxGaussianUCT2Player implements Player {
 		return "MaxGaussianPlayer";
 	}
 
-	private class UCTThrowState extends ThrowState{
+	private class UCTThrowState extends MCTSThrowState{
 
 		Gaussian ev = null;
 		int nbSamples;
@@ -113,8 +122,18 @@ public class CopyOfMaxGaussianUCT2Player implements Player {
 				}
 			}
 			double mean = meanTot/nbSamples;
-			double var = sigmaMuTot/nbSamples-mean*mean;
+			double var = Math.max(0, sigmaMuTot/nbSamples-mean*mean);
 			ev = new Gaussian(mean, var/nbSamples);
+		}
+
+		@Override
+		public double getEV() {
+			return ev==null? Double.NaN: ev.mean;
+		}
+
+		@Override
+		public int getNbSamples() {
+			return nbSamples;
 		}
 
 	}
@@ -125,7 +144,7 @@ public class CopyOfMaxGaussianUCT2Player implements Player {
 
 		public UCTLeafState(Board board, boolean isBlackTurn) {
 			super(board, isBlackTurn);
-			boolean botWins = CopyOfMaxGaussianUCT2Player.this.isBlack? board.blackWins():board.redWins();
+			boolean botWins = MaxdistrUCTPlayer.this.isBlack? board.blackWins():board.redWins();
 			fixedReward = botWins? board.getProfit():-board.getProfit();
 			ev = new Gaussian(fixedReward,0);
 		}
@@ -137,7 +156,7 @@ public class CopyOfMaxGaussianUCT2Player implements Player {
 
 	}
 
-	private class UCTMoveState extends MoveState{
+	private class UCTMoveState extends MCTSMoveState{
 
 		Gaussian ev = null;
 		int nbSamples;
@@ -178,7 +197,7 @@ public class CopyOfMaxGaussianUCT2Player implements Player {
 				double mean = meanTot/nbSamples;
 				double var = sigmaMuTot/nbSamples-mean*mean;
 				ev = new Gaussian(mean, var/nbSamples);
-			}else if(isBlackTurn==CopyOfMaxGaussianUCT2Player.this.isBlack){
+			}else if(isBlackTurn==MaxdistrUCTPlayer.this.isBlack){
 				//take maximum distribution in program decision nodes!
 				nbMax++;
 				Gaussian[] gaussians = new Gaussian[children.length];
@@ -212,7 +231,7 @@ public class CopyOfMaxGaussianUCT2Player implements Player {
 					}
 					return unsampledChildren.get(r.nextInt(unsampledChildren.size()));
 				}
-				int sign = (isBlackTurn==CopyOfMaxGaussianUCT2Player.this.isBlack)? 1:-1;
+				int sign = (isBlackTurn==MaxdistrUCTPlayer.this.isBlack)? 1:-1;
 				double uct = sign*child.ev.mean + C*Math.sqrt(Math.log(Math.max(nbSamples,child.nbSamples))/child.nbSamples);
 				if(uct> max){
 					max = uct;
@@ -236,6 +255,16 @@ public class CopyOfMaxGaussianUCT2Player implements Player {
 				cached = new UCTThrowState(board, isBlackTurn);
 			}
 			return cached;
+		}
+
+		@Override
+		public double getEV() {
+			return ev==null? Double.NaN: ev.mean;
+		}
+
+		@Override
+		public int getNbSamples() {
+			return nbSamples;
 		}
 
 	}

@@ -20,11 +20,14 @@ import java.util.Random;
 
 import org.mctsgammon.Board;
 import org.mctsgammon.DiceThrow;
+import org.mctsgammon.MCTSMoveState;
+import org.mctsgammon.MCTSPlayer;
+import org.mctsgammon.MCTSThrowState;
 import org.mctsgammon.MoveState;
 import org.mctsgammon.Player;
 import org.mctsgammon.ThrowState;
 
-public class UCTPlayer implements Player {
+public class UCTPlayer implements MCTSPlayer {
 
 	private final static Random r = new Random();
 
@@ -51,32 +54,8 @@ public class UCTPlayer implements Player {
 	public void onThrow(Player actor, ThrowState from, MoveState to) {
 	}
 
-	@Override
 	public ThrowState chooseMove(MoveState state) {
-		this.isBlack = state.isBlackTurn;
-		long endTime = System.currentTimeMillis()+time;
-
-		UCTMoveState root = new UCTMoveState(state.board, state.diceThrow, state.isBlackTurn);
-
-		ThrowState[] states = root.getChildren();
-		//		if(states.length>maxBF){
-		//			maxBF = states.length;
-		//			maxBFState = state;
-		//		}
-		//		avgBFSum += states.length;
-		//		nbBFs ++;
-		//		System.out.println("Max BF="+maxBF);
-		//		System.out.println("For "+maxBFState.board+"\n with dice "+maxBFState.diceThrow);
-		//		System.out.println("Avg BF="+(avgBFSum/nbBFs));
-
-		if(states.length==1) return states[0];
-
-		do{
-			root.rootMcts();
-		}while(System.currentTimeMillis()<endTime);
-		System.out.println(this+" performed "+root.nbSamples+" iterations.");
-
-
+		ThrowState[] states = doMCTS(state);
 
 		double maxAppreciation = Double.NEGATIVE_INFINITY;
 		UCTThrowState best = null;
@@ -90,8 +69,31 @@ public class UCTPlayer implements Player {
 			}
 		}
 		System.out.println(this+" predicts "+best.evSum/best.nbSamples);
-		ThrowState throwState = new ThrowState(best.board, best.isBlackTurn);
-		return throwState;
+		return best;
+	}
+
+	public ThrowState[] doMCTS(MoveState state) {
+		long endTime = System.currentTimeMillis()+time;
+		this.isBlack = state.isBlackTurn;
+		UCTMoveState root = new UCTMoveState(state.board, state.diceThrow, state.isBlackTurn);
+		ThrowState[] states = root.getChildren();
+		//		if(states.length>maxBF){
+		//			maxBF = states.length;
+		//			maxBFState = state;
+		//		}
+		//		avgBFSum += states.length;
+		//		nbBFs ++;
+		//		System.out.println("Max BF="+maxBF);
+		//		System.out.println("For "+maxBFState.board+"\n with dice "+maxBFState.diceThrow);
+		//		System.out.println("Avg BF="+(avgBFSum/nbBFs));
+
+		if(states.length>1){
+			do{
+				root.rootMcts();
+			}while(System.currentTimeMillis()<endTime);
+		}
+		System.out.println(this+" performed "+root.nbSamples+" iterations.");
+		return states;
 	}
 
 	@Override
@@ -99,7 +101,7 @@ public class UCTPlayer implements Player {
 		return "UCTPlayer";
 	}
 
-	private class UCTThrowState extends ThrowState{
+	private class UCTThrowState extends MCTSThrowState{
 
 		double evSum = 0;
 		int nbSamples;
@@ -122,6 +124,16 @@ public class UCTPlayer implements Player {
 			return reward;
 		}
 
+		@Override
+		public double getEV() {
+			return evSum/nbSamples;
+		}
+
+		@Override
+		public int getNbSamples() {
+			return nbSamples;
+		}
+
 	}
 
 	private class UCTLeafState extends UCTThrowState{
@@ -142,7 +154,7 @@ public class UCTPlayer implements Player {
 
 	}
 
-	private class UCTMoveState extends MoveState{
+	private class UCTMoveState extends MCTSMoveState{
 
 		double evSum = 0;
 		int nbSamples;
@@ -150,6 +162,16 @@ public class UCTPlayer implements Player {
 		public UCTMoveState(Board board, DiceThrow diceThrow, boolean isBlackTurn) {
 			super(board, diceThrow, isBlackTurn);
 		}	
+
+		@Override
+		public double getEV() {
+			return evSum/nbSamples;
+		}
+
+		@Override
+		public int getNbSamples() {
+			return nbSamples;
+		}
 
 		void rootMcts() {
 			UCTThrowState child  = select();
