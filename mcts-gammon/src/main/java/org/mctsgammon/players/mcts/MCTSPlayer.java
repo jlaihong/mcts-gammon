@@ -13,28 +13,43 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-package org.mctsgammon.players;
+package org.mctsgammon.players.mcts;
 
-import java.util.Random;
+import java.util.List;
 
 import org.mctsgammon.Player;
+import org.mctsgammon.players.mcts.nodes.IChanceOrLeafNode;
+import org.mctsgammon.players.mcts.nodes.MaxMinNode;
 import org.mctsgammon.states.MoveState;
 import org.mctsgammon.states.ThrowState;
 
-public class RandomPlayer implements Player {
+abstract class MCTSPlayer implements Player{
 
-	private static Random r = new Random();
+	protected boolean isBlack;
 	
-	@Override
 	public ThrowState chooseMove(MoveState state) {
-		ThrowState[] states = state.getChildren();
-		return states[r.nextInt(states.length)];
+		
+		this.isBlack = state.isBlackTurn;
+		
+		List<IChanceOrLeafNode> states = doMCTS(state).getChildren();
+		
+		if(states.size()==1) return states.get(0).getThrowState();
+		
+		double maxAppreciation = Double.NEGATIVE_INFINITY;
+		IChanceOrLeafNode best = null;
+		for(IChanceOrLeafNode child:states){
+			System.out.println(" |__o "+child.getStats());
+			double appreciation = child.getEV();
+			if(appreciation>maxAppreciation){
+				maxAppreciation = appreciation;
+				best = child;
+			}
+		}
+		System.out.println(this+" predicts "+best.getStats());
+		return best.getThrowState();
 	}
 	
-	@Override
-	public String toString() {
-		return "RandomPlayer";
-	}
+	public abstract MaxMinNode<?> doMCTS(MoveState state);
 	
 	@Override
 	public void onMove(Player actor, MoveState from, ThrowState to) {
@@ -43,5 +58,4 @@ public class RandomPlayer implements Player {
 	@Override
 	public void onThrow(Player actor, ThrowState from, MoveState to) {
 	}
-
 }

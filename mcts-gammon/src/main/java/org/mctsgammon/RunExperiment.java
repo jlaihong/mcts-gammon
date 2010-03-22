@@ -14,8 +14,10 @@ package org.mctsgammon;
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-import org.mctsgammon.players.MaxUCTPlayer;
-import org.mctsgammon.players.UCTPlayer;
+import org.mctsgammon.players.RolloutPlayer;
+import org.mctsgammon.players.mcts.UCTWeightPlayer;
+import org.mctsgammon.states.MoveState;
+import org.mctsgammon.states.ThrowState;
 
 
 public class RunExperiment {
@@ -23,8 +25,12 @@ public class RunExperiment {
 	
 	public static void main(String[] args) throws InterruptedException {
 		final int time = Integer.parseInt(args[0]);
-		final Player black = new UCTPlayer(time,2.5);
-		final Player red = new MaxUCTPlayer(time,2.5,100000);
+		final Player black = new UCTWeightPlayer(time,2.5);
+//		final Player black = new RandomPlayer();
+//		final Player red = new UCTPlayer(time,2.5);
+//		final Player red = new MaxUCTPlayer(time,2.5,100000);
+//		final Player red = new RandomPlayer();
+		final Player red = new RolloutPlayer(time);
 		final Games games = new Games(1000, black, red);
 		games.addStateListener(new StateListener() {
 			

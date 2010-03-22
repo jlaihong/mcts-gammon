@@ -16,6 +16,9 @@
 package org.mctsgammon;
 import java.util.Scanner;
 
+import org.mctsgammon.states.MoveState;
+import org.mctsgammon.states.ThrowState;
+
 
 public class ConsoleGame implements Player, WinnerListener{
 

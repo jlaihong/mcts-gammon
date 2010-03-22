@@ -18,8 +18,7 @@ package org.mctsgammon;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.mctsgammon.players.RolloutPlayer;
-import org.mctsgammon.players.UCTPlayer;
+import org.mctsgammon.states.ThrowState;
 
 public class Games implements WinnerListener {
 

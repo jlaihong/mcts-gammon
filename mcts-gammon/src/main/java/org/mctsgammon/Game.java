@@ -18,6 +18,9 @@ package org.mctsgammon;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.mctsgammon.states.MoveState;
+import org.mctsgammon.states.ThrowState;
+
 public class Game {
 
 	private MoveState moveState;
