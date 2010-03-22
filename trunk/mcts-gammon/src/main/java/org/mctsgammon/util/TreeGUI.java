@@ -15,6 +15,8 @@
  */
 package org.mctsgammon.util;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
@@ -25,25 +27,23 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
-import org.mctsgammon.MCTSMoveState;
-import org.mctsgammon.MCTSPlayer;
-import org.mctsgammon.MCTSThrowState;
-import org.mctsgammon.MoveState;
-import org.mctsgammon.ThrowState;
-import org.mctsgammon.players.MaxdistrUCTPlayer;
+import org.mctsgammon.players.mcts.UCTWeightPlayer;
+import org.mctsgammon.players.mcts.nodes.IChanceOrLeafNode;
+import org.mctsgammon.players.mcts.nodes.MaxMinNode;
+import org.mctsgammon.states.MoveState;
 
 public class TreeGUI {
 
 	public static void main(String[] args) throws InterruptedException {
-		//MCTSPlayer p = new UCTPlayer(5000, 3);
-		MCTSPlayer p = new MaxdistrUCTPlayer(25000, 3, 1);
+		UCTWeightPlayer p = new UCTWeightPlayer(5000, 3);
+//		MCTSPlayer p = new MaxdistrUCTPlayer(25000, 3, 1);
 		Display display = new Display();
 
 		TreeGUI tree = new TreeGUI(display);
 
 		MoveState state = MoveState.getRandomStartState();
-		ThrowState[] nodes = p.doMCTS(state);
-		tree.readNodes(nodes);
+		MaxMinNode<?> nodes = p.doMCTS(state);
+		tree.readRoot(nodes);
 
 		System.out.println("Handling GUI events.");
 		while (!display.isDisposed()) {
@@ -105,16 +105,17 @@ public class TreeGUI {
 	}
 
 
-	private void readNodes(final ThrowState[] nodes) {
+	private <T> void readRoot(final MaxMinNode<T> root) {
 		display.syncExec(new Runnable(){
 			@Override
 			public void run() {
 				try {
 					System.out.println("Reading in MCTS tree.");
 					tree.removeAll();
-					for(int i=0;i<nodes.length;i++){
-						System.out.println((1+i)+"/"+nodes.length);
-						onThrowState(i, (MCTSThrowState)nodes[i], null);
+					List<IChanceOrLeafNode<T>> nodes = root.getChildrenOrNull();
+					for(int i=0;i<nodes.size();i++){
+						System.out.println((1+i)+"/"+nodes.size());
+						onThrowState(i, nodes.get(i), null);
 					}
 					System.out.println("Redrawing tree.");
 					tree.redraw();
@@ -126,22 +127,22 @@ public class TreeGUI {
 		});
 	}
 
-	private void onMoveState(MCTSMoveState move, TreeItem previous) {
+	private <T> void onMoveState(MaxMinNode<T> move, TreeItem previous) {
 		if(move!=null){
 			TreeItem newItem = previous==null? new TreeItem(tree, SWT.NONE):new TreeItem(previous, SWT.NONE);
 			newItem.setText(new String[] { 
-					""+(move.isBlackTurn? "black":"red"),
-					"throw "+move.diceThrow.toString(),
-					prob(move.diceThrow.prob),
+					""+(move.moveState.isBlackTurn? "black":"red"),
+					"throw "+move.moveState.diceThrow.toString(),
+					prob(move.moveState.diceThrow.prob),
 					""+move.getNbSamples(),
 					""+move.getEV()
 
 			});
-			newItem.setBackground(0, (move.isBlackTurn ? new Color(display, 220, 220, 220):new Color(display, 255, 200, 200)));
-			ThrowState[] children = move.getChildrenIfAny();
+			newItem.setBackground(0, (move.moveState.isBlackTurn ? new Color(display, 220, 220, 220):new Color(display, 255, 200, 200)));
+			List<IChanceOrLeafNode<T>> children = move.getChildrenOrNull();
 			if(children!=null && move.getNbSamples()>1){
-				for(int i=0;i<children.length;i++){
-					onThrowState(i,(MCTSThrowState)children[i], newItem);
+				for(int i=0;i<children.size();i++){
+					onThrowState(i,children.get(i), newItem);
 				}
 			}
 		}
@@ -152,22 +153,23 @@ public class TreeGUI {
 	}
 
 
-	private void onThrowState(int j, MCTSThrowState move, TreeItem previous) {
-		if(move!=null){
+	private <T> void onThrowState(int j, IChanceOrLeafNode<T> chanceNode, TreeItem previous) {
+		if(chanceNode!=null){
 			TreeItem newItem = previous==null? new TreeItem(tree, SWT.NONE):new TreeItem(previous, SWT.NONE);
 			newItem.setText(new String[] { 
-					""+(move.isBlackTurn? "black":"red"),
+					""+(chanceNode.getThrowState().isBlackTurn? "black":"red"),
 					"move "+j,
 					"",
-					""+move.getNbSamples(),
-					""+move.getEV()
+					""+chanceNode.getNbSamples(),
+					""+chanceNode.getEV()
 
 			});
-			newItem.setBackground(0, (move.isBlackTurn ? new Color(display, 220, 220, 220):new Color(display, 255, 200, 200)));
-			MoveState[] children = move.getChildrenIfAny();
-			if(children!=null && move.getNbSamples()>1){
-				for(int i=0;i<children.length;i++){
-					onMoveState((MCTSMoveState)children[i], newItem);
+			newItem.setBackground(0, (chanceNode.getThrowState().isBlackTurn ? 
+					new Color(display, 220, 220, 220):new Color(display, 255, 200, 200)));
+			List<MaxMinNode<T>> children = chanceNode.getChildrenOrNull();
+			if(children!=null && chanceNode.getNbSamples()>1){
+				for(int i=0;i<children.size();i++){
+					onMoveState(children.get(i), newItem);
 				}
 			}
 		}

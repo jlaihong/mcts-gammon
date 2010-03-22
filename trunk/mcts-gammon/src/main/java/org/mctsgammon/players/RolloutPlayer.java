@@ -16,9 +16,9 @@
 package org.mctsgammon.players;
 
 import org.mctsgammon.Games;
-import org.mctsgammon.MoveState;
 import org.mctsgammon.Player;
-import org.mctsgammon.ThrowState;
+import org.mctsgammon.states.MoveState;
+import org.mctsgammon.states.ThrowState;
 
 public class RolloutPlayer implements Player {
 	

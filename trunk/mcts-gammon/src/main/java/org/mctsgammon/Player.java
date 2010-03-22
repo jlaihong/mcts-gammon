@@ -15,6 +15,9 @@
  */
 package org.mctsgammon;
 
+import org.mctsgammon.states.MoveState;
+import org.mctsgammon.states.ThrowState;
+
 public interface Player extends StateListener{
 
 	public ThrowState chooseMove(MoveState state);

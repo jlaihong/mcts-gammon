@@ -15,6 +15,8 @@
  */
 package org.mctsgammon;
 
+import java.util.Random;
+
 public enum DiceThrow {
 
 	_11(1,1),
@@ -51,6 +53,20 @@ public enum DiceThrow {
 	public final byte high;
 	public final boolean isDouble;
 	public final double prob;
+	
+	public final static DiceThrow[] equiProbableThrows = new DiceThrow[]{
+		_11,_12,_13,_14,_15,_16,_12,_13,_14,_15,_16,
+		_22,_23,_24,_25,_26,_23,_24,_25,_26,
+		_33,_34,_35,_36,_34,_35,_36,_44,_45,_46,_45,_46,	
+		_55,_56,_56,		
+		_66
+	};
+	
+	private final static Random r = new Random();
+	
+	public final static DiceThrow getRandomThrow(){
+		return equiProbableThrows[r.nextInt(36)];
+	}
 
 	private DiceThrow(int low, int high) {
 		this((byte)low,(byte)high);

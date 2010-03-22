@@ -13,14 +13,28 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-package org.mctsgammon;
+package org.mctsgammon.states;
+import org.mctsgammon.Board;
+import org.mctsgammon.DiceThrow;
+import org.mctsgammon.GameState;
 
-import org.mctsgammon.states.MoveState;
-import org.mctsgammon.states.ThrowState;
+public class ThrowState extends GameState{
 
-public interface StateListener {
+	public ThrowState(Board board, boolean isBlackTurn) {
+		super(board, isBlackTurn);
+	}
 
-	public void onMove(Player actor, MoveState from,ThrowState to);
-	public void onThrow(Player actor, ThrowState from, MoveState to);
-	
+	public MoveState[] getChildren() {
+		DiceThrow[] diceThrows = DiceThrow.values();
+		MoveState[] children = new MoveState[diceThrows.length];
+		for(int i=0;i<diceThrows.length;i++){
+			children[i] = new MoveState(board, diceThrows[i], isBlackTurn);
+		}
+		return children;
+	}
+
+	public MoveState getRandomChild(){
+		return new MoveState(board, DiceThrow.getRandomThrow(), isBlackTurn);
+	}
+
 }
